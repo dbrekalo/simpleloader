@@ -19,4 +19,4 @@ app.load.getImage('/img/logo.png', function(){ console.log('Loaded image!'); })
 ```
 
 ##Description
-Simpleloader is a  small library for conditional resource loading based on JQuery with api similar to yepnope.
+Simpleloader is a  small library for conditional resources loading based on JQuery with api similar to yepnope.
