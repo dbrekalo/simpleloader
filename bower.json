@@ -1,0 +1,23 @@
+{
+  "name": "simpleloader",
+  "version": "0.1.0",
+  "homepage": "https://github.com/dbrekalo/simpleloader",
+  "authors": [
+    "Damir Brekalo <dbrekalo@gmail.com>"
+  ],
+  "description": "Simple conditional resource loader based on Jquery",
+  "main": "dist/simpleloader.min.js",
+  "keywords": [
+    "Loader",
+    "Conditional",
+    "resource"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
