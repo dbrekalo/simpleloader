@@ -1,5 +1,7 @@
 ;(function($, window){
 
+	"use strict";
+
 	var resourcesCache = {},
 		baseUrl = '',
 		sufix = '';
@@ -17,7 +19,7 @@
 
 		if (callback){
 
-			if ( resource.deferred.state() == 'resolved' ){ callback(); return; }
+			if ( resource.deferred.state() === 'resolved' ){ callback(); return; }
 			$.when(resource.deferred).done(function(){ callback(); });
 
 		}
@@ -28,7 +30,7 @@
 
 		var currentResource = resources.shift();
 
-		api['get' + getFileType(currentResource.url) ](currentResource.url);
+		api['get' + getFileType(currentResource.url)](currentResource.url);
 
 		$.when(resourcesCache[currentResource.url].deferred).done(function(){
 
@@ -41,7 +43,7 @@
 
 	function getFileType(path){
 
-		var extension = path.split('.').pop(),
+		var extension = path.split('.').pop().split('?').shift(),
 			type = '';
 
 		switch (extension){
@@ -83,7 +85,7 @@
 		resolveResources(resourceCanidates);
 
 		$.when.apply(window,deferreds).done(function(){
-			 params.complete && params.complete();
+			params.complete && params.complete();
 		});
 
 	}
@@ -131,4 +133,4 @@
 	$.wk = $.wk || {};
 	$.wk.load = load;
 
-})(jQuery || Zepto, window);
+})(window.jQuery || window.Zepto, window);
