@@ -37,6 +37,10 @@
 			currentResource.deferred.resolve();
 			if (resources.length) { resolveResources(resources); }
 
+		}).fail(function(){
+
+			currentResource.deferred.reject();
+
 		});
 
 	}
@@ -72,7 +76,7 @@
 
 		if (params.load) { appendResourceUrls( params.load ); }
 		if (params.test && params.yep){ appendResourceUrls( params.yep ); }
-		if (!params.test && params.nope){ appendResourceUrls( params.nope ); }
+		if (params.test === false && params.nope){ appendResourceUrls( params.nope ); }
 
 		$.each(resourceUrls, function(i, url){
 
@@ -86,6 +90,8 @@
 
 		$.when.apply(window,deferreds).done(function(){
 			params.complete && params.complete();
+		}).fail(function(){
+			params.fail && params.fail();
 		});
 
 	}
