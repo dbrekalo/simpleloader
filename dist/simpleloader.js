@@ -76,7 +76,7 @@
 
 		if (params.load) { appendResourceUrls( params.load ); }
 		if (params.test && params.yep){ appendResourceUrls( params.yep ); }
-		if (params.test === false && params.nope){ appendResourceUrls( params.nope ); }
+		if (!params.test && params.nope){ appendResourceUrls( params.nope ); }
 
 		$.each(resourceUrls, function(i, url){
 
