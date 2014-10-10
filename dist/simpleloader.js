@@ -86,6 +86,8 @@
 
 		});
 
+		if (resourceCanidates.length === 0) { return; }
+
 		resolveResources(resourceCanidates);
 
 		$.when.apply(window,deferreds).done(function(){
