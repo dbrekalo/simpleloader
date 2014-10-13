@@ -86,7 +86,10 @@
 
 		});
 
-		if (resourceCanidates.length === 0) { return; }
+		if (resourceCanidates.length === 0) {
+			params.complete && params.complete();
+			return;
+		}
 
 		resolveResources(resourceCanidates);
 
