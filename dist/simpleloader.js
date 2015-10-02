@@ -2,10 +2,9 @@
 
     var resourcesCache = {},
         baseUrl = '',
-        sufix = '',
-        debugMode = false;
+        sufix = '';
 
-    function getResource(url, ajaxParams, callback) {
+    function getResource(url, callback) {
 
         var resource = resourcesCache[url];
 
@@ -13,35 +12,45 @@
 
             resource = resourcesCache[url] = {
                 url: url,
-                deferred: $.ajax($.extend({url: baseUrl + url + sufix}, ajaxParams, debugMode ? {crossDomain: true} : {}))
+                deferred: $.ajax({
+                    url: baseUrl + url + sufix,
+                    dataType: 'text',
+                    cache: true,
+                    success: function(text) {
+                        resource.code = text;
+                    }
+                })
             };
 
         }
 
         if (callback) {
 
-            resource.deferred.state() === 'resolved' ? callback() : $.when(resource.deferred).done(callback);
+            resource.deferred.state() === 'resolved' ? callback(resource) : $.when(resource.deferred).done(function() {
+                callback(resource);
+            });
 
         }
 
+        return resource.deferred;
+
     }
 
-    function resolveResources(resources) {
+    function processResourcesQue(resources, success, fail) {
 
-        var currentResource = resources.shift();
+        if (resources.length === 0) {
+            success();
+            return;
+        }
 
-        api['get' + getFileType(currentResource.url)](currentResource.url);
+        var currentResourceUrl = resources.shift(),
+            method = 'get' + getFileType(currentResourceUrl);
 
-        $.when(resourcesCache[currentResource.url].deferred).done(function() {
+        $.when(api[method](currentResourceUrl)).done(function() {
 
-            currentResource.deferred.resolve();
-            resources.length && resolveResources(resources);
+            resources.length > 0 ? processResourcesQue(resources, success, fail) : success();
 
-        }).fail(function() {
-
-            currentResource.deferred.reject();
-
-        });
+        }).fail(fail);
 
     }
 
@@ -62,41 +71,23 @@
 
     function load(params) {
 
-        var deferreds = [],
-            resourceUrls = [],
-            resourceCanidates = [],
-            appendResourceUrls = function(param) {
+        var resourceUrls = [];
 
-                $.isArray(param) ? $.merge(resourceUrls, param) : resourceUrls.push(param);
+        $.each([params.load, params.test && params.yep, !params.test && params.nope], function(i, item) {
 
-            };
-
-        if (params.load) { appendResourceUrls(params.load); }
-        if (params.test && params.yep) { appendResourceUrls(params.yep); }
-        if (!params.test && params.nope) { appendResourceUrls(params.nope); }
-
-        $.each(resourceUrls, function(i, url) {
-
-            var deferred = $.Deferred();
-            deferreds.push(deferred);
-
-            resourceCanidates.push({
-                url: url,
-                deferred: deferred
-            });
+            if (item) {
+                $.isArray(item) ? $.merge(resourceUrls, item) : resourceUrls.push(item);
+            }
 
         });
 
-        if (resourceCanidates.length === 0) {
-            params.complete && params.complete();
-            return;
-        }
+        $.each(resourceUrls, function(i, url) {
+            getResource(url);
+        });
 
-        resolveResources(resourceCanidates);
-
-        $.when.apply(window, deferreds).done(function() {
+        processResourcesQue(resourceUrls, function() {
             params.complete && params.complete();
-        }).fail(function() {
+        }, function() {
             params.fail && params.fail();
         });
 
@@ -106,23 +97,43 @@
 
         getScript: function(url, callback) {
 
-            getResource(url, {dataType: 'script', cache: true}, callback);
+            return getResource(url, function(resource) {
+
+                if (resource.code) {
+
+                    (window.execScript || function(data) {
+                        window['eval'].call(window, data);
+                    })($.trim(resource.code));
+
+                    delete resource.code;
+                }
+
+                callback && callback();
+
+            });
 
         },
 
         getCSS: function(url, callback) {
 
-            getResource(url, {cache: true }, callback);
+            return getResource(url, function(resource) {
 
-            $.when(resourcesCache[url].deferred).done(function() {
-                $('<link>').appendTo($('head')).attr({type: 'text/css', rel: 'stylesheet'}).attr('href', baseUrl + url + sufix);
+                if (resource.code) {
+
+                    $('<link>').appendTo($('head')).attr({type: 'text/css', rel: 'stylesheet'}).attr('href', baseUrl + url + sufix);
+                    delete resource.code;
+
+                }
+
+                callback && callback();
+
             });
 
         },
 
         getImage: function(url, callback) {
 
-            getResource(url, {}, callback);
+            return getResource(url, callback);
 
         },
 
@@ -138,11 +149,7 @@
 
         },
 
-        setDebugMode: function(debug) {
-
-            debugMode = debug;
-
-        }
+        preload: getResource
 
     };
 

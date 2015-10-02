@@ -37,7 +37,7 @@
     "requireCamelCaseOrUpperCaseIdentifiers": "ignoreProperties",
     "requireLineFeedAtFileEnd": true,
     "requireCapitalizedConstructors": true,
-    "requireDotNotation": true,
+    // "requireDotNotation": true,
     "requireCurlyBraces": [
         "do"
     ],
